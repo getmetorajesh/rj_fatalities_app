@@ -7,3 +7,4 @@
 4. Run `npm install gulp`
 5. Run `gulp`
 6. Code like a Boss
+7. install any JS and CSS libraries using Bower eg: `bower install jquery`
