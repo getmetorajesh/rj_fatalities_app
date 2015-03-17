@@ -4,4 +4,6 @@
 2. Install bower from npm
     > npm install -g bower
 3. Run `bower install`
-4. Run `gulp`
+4. Run `npm install gulp`
+5. Run `gulp`
+6. Code like a Boss
