@@ -58,8 +58,16 @@ router.get('/userlist', function(req, res) {
 
         console.log(user_grouping);
         var group_counter=0;
-      var loop =[];
-        user_grouping.forEach(function(user_group){
+        var listPromises =[];
+
+        for(var i in user_grouping){
+            listPromises.push( getData(req, user_grouping[i]));
+        }
+
+        Promise.all(listPromises).then(function(dataArr){
+            res.json(dataArr);
+        });
+        /*user_grouping.forEach(function(user_group){
 
             var timeDiff = [
 
@@ -73,35 +81,37 @@ router.get('/userlist', function(req, res) {
                             ];
             //async.each(timeDiff, function(timeDiff){
             //async.eachSeries(timeDiff, timeDiff, function(){
-
-            timeDiff.forEach(function(timeDiffVal){
+            group_counter = group_counter + 1;
+            var loop =[];
+            for(var i=0; i<timeDiff.length; i++){
                 console.log("group_counter1="+group_counter);
-                var between = timeDiffVal.split(" to ");
-                var from_time = convertToMinutes(between[0]);
-                var to_time = convertToMinutes(between[1]);
+                var between = timeDiff[i].split(":");
+                var from_time = convertToMinutes(between.from);
+                var to_time = convertToMinutes(between.to);
                 var value = 0;
 
-                var l = collection.count({"road_user_grouping_tx":user_group, "from":{$gte:from_time}, "to":{$lte:to_time}});
-                var l1 = l.then(function(doc){
-                     var tempObj= createTempObj(user_group, doc, timeDiffVal);
-                    //console.log(user_group+" "+result+" "+timeDiffVal);
-                    //console.log("group_counter2= "+group_counter);
-                    console.log(tempObj);
-                    //resJson.push(tempObj);
-                    return tempObj;
-                })
-                loop.push(l1);
-            });
-            group_counter = group_counter + 1;
-            if(group_counter === user_grouping.length){
+                 collection.count({"road_user_grouping_tx":user_group, "from":from_time, "to":to_time}, function(err, result){
+                    var tempObj = {};
+                        tempObj.type = user_group;
+                        tempObj.value = result;
 
+                        tempObj.timeval = timeDiff[i];
+                        resJson.push(tempObj);
+                        console.log(group_counter);
+                        if(group_counter === user_grouping.length){
+                           // res.json(resJson);
+                        }
+                });
+                    //var grp = getGroups(req, user_group, from_time, to_time);
+                console.log("group_counter= "+group_counter);
             }
+           //res.json(resJson);
+             //res.json(resJson);
 
-      });
-        Promise.all(loop).then(function(result){
-                    res.json(result);
+
+
         });
-    });
+        });*/
 
 
     // Promise.all([
@@ -118,16 +128,36 @@ router.get('/userlist', function(req, res) {
     // });
 });
 
-var createTempObj = function(user_group, value, timeDiffVal){
-    var tempObj = {};
-    tempObj.type = user_group;
-    tempObj.value = value;
-    tempObj.timeval = timeDiffVal;
-    return tempObj;
+function getData(req, user_group){
+    return new Promise(function(resolve, reject){
+
+        var timeDiff = [
+            "09:00 to 12:00",
+            "12:00 to 15:00",
+            "15:00 to 19:00",
+            "19:00 to 23:59",
+            "00:00 to 03:00",
+            "03:00 to 06:00",
+            "06:00 to 09:00"
+            ];
+
+        var listLoop=[];
+        for(var i=0; i<timeDiff.length; i++){
+
+            var between = timeDiff[i].split(":");
+            var from_time = convertToMinutes(between.from);
+            var to_time = convertToMinutes(between.to);
+
+            listLoop.push( req, user_group,from_time, to_time);
+        }
+        var res = Promise.all(promises)
+        resolve(res);
+    });
 }
 
 
-var getGroups = function(req, user_group, from, to){
+function getGroups(req, user_group, from, to){
+    return new Promise(function(resolve, reject){
         var db = req.db;
         var collection = db.get('Fatalities_with_LGA');
         var countvalue = 0;
@@ -136,7 +166,10 @@ var getGroups = function(req, user_group, from, to){
                 tempObj.type = user_group;
                 tempObj.value = result;
                 tempObj.timeval = timeDiff[i];
+                resolve(tempObj);
         });
+    });
+
 }
 
 module.exports = router;
