@@ -51,7 +51,9 @@ router.get('/userlist', function(req, res) {
 
     var resJson = [];
     // get all the road_user_grouping_tx = [PASSENGER, PEDESTRIAN]
-    collection.distinct("road_user_grouping_tx", function(err, data){
+   collection.distinct("crash_type_tx", function(err, data){
+
+    //collection.distinct("road_user_grouping_tx", function(err, data){
         //console.log(data);
         return data;
     }).then(function(user_grouping){
@@ -62,14 +64,18 @@ router.get('/userlist', function(req, res) {
         user_grouping.forEach(function(user_group){
 
             var timeDiff = [
-
-            "09:00 to 12:00",
-            "12:00 to 15:00",
-            "15:00 to 19:00",
-            "19:00 to 23:59",
-            "00:00 to 03:00",
-            "03:00 to 06:00",
-            "06:00 to 09:00"
+            "00:00 to 01:59",
+            "02:00 to 03:59",
+            "04:00 to 05:59",
+            "06:00 to 07:59",
+            "08:00 to 09:59",
+            "10:00 to 11:59",
+            "12:00 to 13:59",
+            "14:00 to 15:59",
+            "16:00 to 17:59",
+            "18:00 to 19:59",
+            "20:00 to 21:59",
+            "22:00 to 23:59"
                             ];
             //async.each(timeDiff, function(timeDiff){
             //async.eachSeries(timeDiff, timeDiff, function(){
@@ -80,10 +86,12 @@ router.get('/userlist', function(req, res) {
                 var from_time = convertToMinutes(between[0]);
                 var to_time = convertToMinutes(between[1]);
                 var value = 0;
-
-                var l = collection.count({"road_user_grouping_tx":user_group, "from":{$gte:from_time}, "to":{$lte:to_time}});
+                console.log(from_time+"  "+to_time);
+               var l = collection.count({"crash_type_tx":user_group,
+               // var l = collection.count({"road_user_grouping_tx":user_group,
+                    $and:[{"from":{$gte:from_time}},{"to":{$lte:to_time}}], "gender_tx":"MALE" } ); //"gender_tx":""
                 var l1 = l.then(function(doc){
-                     var tempObj= createTempObj(user_group, doc, timeDiffVal);
+                     var tempObj= createTempObj(user_grouping, user_group, doc, between[0], timeDiff.indexOf(timeDiffVal));
                     //console.log(user_group+" "+result+" "+timeDiffVal);
                     //console.log("group_counter2= "+group_counter);
                     console.log(tempObj);
@@ -118,11 +126,12 @@ router.get('/userlist', function(req, res) {
     // });
 });
 
-var createTempObj = function(user_group, value, timeDiffVal){
+var createTempObj = function(user_grouping, cur_user_group, value, timeDiffVal, timeHrVal){
     var tempObj = {};
-    tempObj.type = user_group;
+    console.log(cur_user_group);
+    tempObj.type = user_grouping.indexOf(cur_user_group)+1;
     tempObj.value = value;
-    tempObj.timeval = timeDiffVal;
+    tempObj.timeval = timeHrVal+1;//Math.round(convertToMinutes(timeDiffVal)/60);
     return tempObj;
 }
 
@@ -131,7 +140,8 @@ var getGroups = function(req, user_group, from, to){
         var db = req.db;
         var collection = db.get('Fatalities_with_LGA');
         var countvalue = 0;
-        var countVal = collection.count({"road_user_grouping_tx":user_group, "from":from, "to":to}, function(err, value){
+         var countVal = collection.count({"crash_type_tx":user_group, "from":from, "to":to}, function(err, value){
+       // var countVal = collection.count({"road_user_grouping_tx":user_group, "from":from, "to":to}, function(err, value){
               var tempObj = {};
                 tempObj.type = user_group;
                 tempObj.value = result;

@@ -21,6 +21,7 @@
       text.axis-worktime {
         fill: #000;
       }
+      #chart{ margin-left: 200px;}
     </style>
     <script src="http://d3js.org/d3.v3.js"></script>
   </head>
@@ -28,16 +29,29 @@
     <div id="chart"></div>
 
     <script type="text/javascript">
-      var margin = { top: 50, right: 0, bottom: 100, left: 30 },
-          width = 960 - margin.left - margin.right,
-          height = 430 - margin.top - margin.bottom,
-          gridSize = Math.floor(width / 24),
-          legendElementWidth = gridSize*2,
+      var margin = { top: 50, right: 0, bottom: 100, left: 230 },
+          width = 990 - margin.left - margin.right,
+          height = 900 - margin.top - margin.bottom,
+          gridSize = Math.floor(width / 12),
+          legendElementWidth = gridSize*1,
           buckets = 9,
           colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"], // alternatively colorbrewer.YlGnBu[9]
-          days = ["Pedestrian", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-          times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a"];
-
+          //days = [ 'PASSENGER', 'PEDESTRIAN', 'DRIVER', 'MOTORCYCLIST', 'BICYCLIST', 'UNKNOWN' ]
+          days = ["SAME DIRECTION", "PEDESTRIAN", "RUN OFF ROAD ON A CURVE", "OPPOSING DIRECTION", "ADJACENT DIRECTION", "RUN OFF A STRAIGHT ROAD", "ON ROAD", "MANOEUVRING", "PASSENGER/MISC", "OVERTAKING", "UNKNOWN"];
+           times = [
+            "< 01:59",
+            "< 03:59",
+            "< 05:59",
+            "< 07:59",
+            "< 09:59",
+            "< 11:59",
+            "< 13:59",
+            "< 15:59",
+            "< 17:59",
+            "< 19:59",
+            "< 21:59",
+            "< 23:59"
+                            ];
 
       d3.json("http://localhost:3030/users/userlist",
        /* function(d) {
@@ -48,6 +62,13 @@
           };
         },*/
         function(error, data) {
+        data.forEach(function(d, i) {
+            console.log(d);
+            d.day = d.type;
+            d.hour = d.timeval;
+            d.value = d.value;
+            console.log(d.day);
+          });
           var colorScale = d3.scale.quantile()
               .domain([0, buckets - 1, d3.max(data, function (d) { return d.value; })])
               .range(colors);
